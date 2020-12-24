@@ -21,50 +21,68 @@ struct Point{
 };
 Point point[200000];
 Point k[200000];
+double xCoord[200000];
+
 
 double distance(const Point &a, const Point &b){
     return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
-}
-
-int cmpX(const void *a, const void *b){ 
-    return int(((Point *)a)->x - ((Point *)b)->x); 
 }
 
 int cmpY(const void *a, const void *b){ 
     return int(((Point *)a)->y - ((Point *)b)->y); 
 }
 
-double findMedian(int start, int end){
-    if((end - start +1) % 2 == 0){
-        return (point[(start+end)/2].x + point[(start+end)/2+1].x)/2;
-    }else{
-        return point[(start+end)/2].x;
-    }
+double findMedian(int n){
+    if (n % 2 == 0) { 
+        nth_element(xCoord, xCoord + n / 2, xCoord + n); 
+        nth_element(xCoord, xCoord + (n - 1) / 2, xCoord + n); 
+        return (xCoord[(n - 1) / 2] + xCoord[n / 2]) / 2.0; 
+    
+    }else { 
+        nth_element(xCoord, xCoord + n / 2, xCoord + n); 
+        return xCoord[n / 2]; 
+    } 
 }
 
 
-void closestPair(int start, int end){
-    int size = end - start + 1;
+void closestPair(vector<Point> p, int size){
     if(size < 2) return;
     if(size == 2) {
-        minDistance = min(distance(point[start],point[end]), minDistance);
+        minDistance = min(distance(p[0],p[1]), minDistance);
         return;
     }
-    
-    int mid = (start + end) / 2;
-    double median = findMedian(start, end);
 
-    closestPair(start, mid);
-    closestPair(mid+1, end);
+    for(int i=0; i<size; i++){
+        xCoord[i] = p[i].x;
+    }
+    double median = findMedian(size);
+
+    vector<Point> l;
+    vector<Point> r;
+
+    for(int i=0; i<size; i++){
+        if( p[i].x < median )
+            l.push_back(p[i]);
+        else if(p[i].x > median)
+            r.push_back(p[i]);
+        else{
+            if(l.size() > r.size())
+                r.push_back(p[i]);
+            else
+                l.push_back(p[i]);
+        }
+    }
+
+    closestPair(l, l.size());
+    closestPair(r, r.size());
 
     int j = 0;
-    for(int i=start; i<=end; i++){
-        if( fabs(point[i].x - median) < minDistance){
-            k[j] = point[i];
+    for(int i=0; i<size; i++){
+        if( fabs(p[i].x - median) < minDistance){
+            k[j] = p[i];
             j++;
         }
     }
-    qsort(k, j, sizeof(Point), cmpY);
     for(int i=0; i<j; i++){
         for(int l=i+1; l<j&&l<i+7; l++){
             minDistance = min(distance(k[i], k[l]), minDistance);
@@ -74,19 +92,14 @@ void closestPair(int start, int end){
 }
 
 int main(){
-    auto start = high_resolution_clock::now(); 
     cin >> nums;
     for(int i=0; i<nums; i++){
         cin >> point[i].x >> point[i].y;
     }
-
-    qsort(point, nums, sizeof(Point), cmpX);
-    closestPair(0, nums-1);
-    
+    qsort(point, nums, sizeof(Point), cmpY);
+    vector<Point> p(point,point+nums); 
+    closestPair(p, nums);
     cout << (long long)minDistance << "\n";
-    auto stop = high_resolution_clock::now(); 
-    auto duration = duration_cast<microseconds>(stop - start); 
-    cout << duration.count() << endl; 
     
     return 0;
 }
