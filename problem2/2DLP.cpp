@@ -28,11 +28,11 @@ unordered_map<int,list<constraint>> subject;
 
 inline double intersection_x( const constraint &l1, const constraint &l2 ){ return ( l2.b * l1.c - l1.b * l2.c ) / ( l1.a * l2.b - l2.a * l1.b );}
 inline double intersection_y( const constraint &l1, const constraint &l2 ){ return ( l1.a * l2.c - l2.a * l1.c ) / ( l1.a * l2.b - l2.a * l1.b );}
-inline bool is_parallel( const constraint &l1, const constraint &l2 ){ return abs(l1.a/l1.b - l2.a/l2.b) < EPSILON ;}
+inline bool is_parallel( const constraint &l1, const constraint &l2 ){ return fabs(l1.a/l1.b - l2.a/l2.b) < EPSILON ;}
 inline double slope(const constraint &l1){ return -l1.a / l1.b; }
 inline double obY( const constraint &l1, double x ){ return ( l1.c - l1.a * x ) / l1.b;}
 inline double obX( const constraint &l1, double y ){ return ( l1.c - l1.b * y ) / l1.a;}
-inline bool belong(const constraint &l1, double x, double y){ return round( l1.a * x + l1.b * y) != l1.c ;}
+inline bool belong(const constraint &l1, double x, double y){ return fabs(l1.a * x + l1.b * y - l1.c) < 1;}
 inline int classfier( const constraint &l1 ){
     if( l1.b < 0 ) return -1;
     if( l1.b > 0) return 1;
@@ -56,13 +56,13 @@ inline int observation( double x ){
     for(auto it=subject[1].begin(); it!=subject[1].end(); it++) beta_y = min(beta_y ,obY(*it, x));
     for(auto it=subject[-1].begin(); it!=subject[-1].end(); it++) alpha_y = max(alpha_y ,obY(*it, x));
     for(auto it=subject[1].begin(); it!=subject[1].end(); it++){
-        if( belong(*it, x, beta_y) ) continue;
+        if( !belong(*it, x, beta_y) ) continue;
         double rate = slope(*it);
         t_max_slope = max(t_max_slope,rate);
         t_min_slope = min(t_min_slope,rate);
     }
     for(auto it=subject[-1].begin(); it!=subject[-1].end(); it++){
-        if( belong(*it, x, alpha_y) ) continue;
+        if( !belong(*it, x, alpha_y) ) continue;
         double rate = slope(*it);        
         s_min_slope = min(s_min_slope,rate);
         s_max_slope = max(s_max_slope,rate);
